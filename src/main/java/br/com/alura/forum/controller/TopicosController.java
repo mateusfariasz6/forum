@@ -10,6 +10,13 @@ import br.com.alura.forum.repository.CursoRepository;
 import br.com.alura.forum.repository.TopicoRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
@@ -26,13 +33,18 @@ public class TopicosController {
     private TopicoRepository topicoRepository;
     @Autowired
     private CursoRepository cursoRepository;
+
+
     @GetMapping
-    public List<TopicoDto> listaDeTopicos(String nomeCurso){
+    @Cacheable(value = "listaDeTopicos")
+    public Page<TopicoDto> listaDeTopicos(@RequestParam(required = false) String nomeCurso, @PageableDefault(sort = "id", size = 10, direction = Sort.Direction.DESC) Pageable paginacao){
+
         if (nomeCurso == null){
-            List<Topico> topicos = topicoRepository.findAll();
+            Page<Topico> topicos = topicoRepository.findAll(paginacao);
+
             return TopicoDto.converter(topicos);
         }else {
-            List<Topico> topicos = topicoRepository.findByCurso_Nome(nomeCurso);
+            Page<Topico> topicos = topicoRepository.findByCurso_Nome(nomeCurso,paginacao);
             return TopicoDto.converter(topicos);
 
         }
@@ -40,6 +52,7 @@ public class TopicosController {
 
     }
     @PostMapping
+    @CacheEvict(value = "listaDeTopicos",allEntries = true)
     public ResponseEntity<TopicoDto> cadastrarTopico(@RequestBody @Valid TopicoRequestSaveDto topicoRequestSaveDto, UriComponentsBuilder uriComponentsBuilder){
         Topico topico = topicoRequestSaveDto.converter(cursoRepository);
         topicoRepository.save(topico);
