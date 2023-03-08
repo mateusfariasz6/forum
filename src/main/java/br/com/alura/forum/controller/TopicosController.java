@@ -1,23 +1,50 @@
 package br.com.alura.forum.controller;
 
-import br.com.alura.forum.models.Curso;
-import br.com.alura.forum.models.Topico;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import br.com.alura.forum.controller.dto.TopicoDto;
+import br.com.alura.forum.controller.dto.TopicoRequestSaveDto;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import br.com.alura.forum.models.Topico;
+import br.com.alura.forum.repository.CursoRepository;
+import br.com.alura.forum.repository.TopicoRepository;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 import java.util.List;
 
 @RestController
+@RequestMapping("/topicos")
 public class TopicosController {
-    @RequestMapping("/topicos")
-    public List<Topico> listaDeTopicos(){
-        Topico topico = new Topico("Duvidas spring", "Estou com duvida sobre o spring",
-                new Curso("Spring","Programação"));
+    @Autowired
+    private TopicoRepository topicoRepository;
+    @Autowired
+    private CursoRepository cursoRepository;
+    @GetMapping
+    public List<TopicoDto> listaDeTopicos(String nomeCurso){
+        if (nomeCurso == null){
+            List<Topico> topicos = topicoRepository.findAll();
+            return TopicoDto.converter(topicos);
+        }else {
+            List<Topico> topicos = topicoRepository.findByCurso_Nome(nomeCurso);
+            return TopicoDto.converter(topicos);
 
-        return Arrays.asList(topico,topico,topico);
+        }
+
+
+    }
+    @PostMapping
+    public ResponseEntity<TopicoDto> cadastrar(@RequestBody @Valid TopicoRequestSaveDto topicoRequestSaveDto, UriComponentsBuilder uriComponentsBuilder){
+        Topico topico = topicoRequestSaveDto.converter(cursoRepository);
+        topicoRepository.save(topico);
+
+        URI uri = uriComponentsBuilder.path("/topicos/{id}").buildAndExpand(topico.getId()).toUri();
+
+        return ResponseEntity.created(uri).body(new TopicoDto(topico));
+
+
     }
 }
