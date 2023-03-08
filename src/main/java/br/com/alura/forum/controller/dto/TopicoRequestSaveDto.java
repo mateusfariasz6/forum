@@ -9,11 +9,11 @@ import org.hibernate.validator.constraints.Length;
 
 public class TopicoRequestSaveDto {
      @NotEmpty @NotNull @Length(min = 5,max = 50)
-    public String titulo;
+     private String titulo;
     @NotEmpty @NotNull @Length(min = 5,max = 300)
-    public String mensagem;
+    private String mensagem;
     @NotEmpty @NotNull @Length(min = 3,max = 50)
-    public String nomeCurso;
+    private String nomeCurso;
 
     public String getTitulo() {
         return titulo;

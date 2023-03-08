@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class TopicoDto {
-    public Long id;
-    public String titulo;
-    public String mensagem;
-    public LocalDateTime dataCriacao;
+    private Long id;
+    private String titulo;
+    private String mensagem;
+    private LocalDateTime dataCriacao;
 
     public TopicoDto(Topico topico){
         this.id = topico.getId();
